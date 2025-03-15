@@ -1,0 +1,12 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #FF9999;
+}
+canvas {
+    background-image: url('background.jpg');
+    background-size:cover ;
+    border: 2px solid pink;
+}
