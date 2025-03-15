@@ -1,7 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.8;
 
@@ -9,17 +8,17 @@ const birdImage = new Image();
 birdImage.src = "bird.png";
 
 const bird = {
-    x: 50,
+    x: 50,  
     y: canvas.height / 2,
     width: 30,
     height: 30,
-    gravity: 0.25, 
-    lift: -6, 
-    velocity: 0,
+    gravity: 0.15, 
+    lift: -4.5, 
+    velocity: 0,    
     draw() {
         ctx.drawImage(birdImage, this.x, this.y, this.width, this.height);
     },
-    update() {
+    update() {  
         this.velocity += this.gravity;
         this.y += this.velocity;
         if (this.y + this.height > canvas.height) {
@@ -36,7 +35,6 @@ const bird = {
     }
 };
 
-
 function handleJump() {
     if (gameOver) {
         restartGame();
@@ -52,8 +50,6 @@ document.addEventListener("keydown", function (event) {
 });
 
 document.addEventListener("mousedown", handleJump);
-
-
 document.addEventListener("touchstart", function (event) {
     event.preventDefault(); 
     handleJump();
@@ -61,18 +57,20 @@ document.addEventListener("touchstart", function (event) {
 
 const pipes = [];
 const pipeWidth = 50;
-const pipeGap = 160; 
+const pipeGap = 160;
 let frame = 0;
+let score = 0;
+let pipeSpeed = 1.5; // Tốc độ di chuyển của ống
 
 function createPipe() {
     let pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 20)) + 20;
-    pipes.push({ x: canvas.width, y: 0, width: pipeWidth, height: pipeHeight });
-    pipes.push({ x: canvas.width, y: pipeHeight + pipeGap, width: pipeWidth, height: canvas.height - pipeHeight - pipeGap });
+    pipes.push({ x: canvas.width, y: 0, width: pipeWidth, height: pipeHeight, scored: false });
+    pipes.push({ x: canvas.width, y: pipeHeight + pipeGap, width: pipeWidth, height: canvas.height - pipeHeight - pipeGap, scored: false });
 }
 
 function updatePipes() {
     for (let i = 0; i < pipes.length; i++) {
-        pipes[i].x -= 1.5; 
+        pipes[i].x -= pipeSpeed;
     }
     if (frame % 180 === 0) { 
         createPipe();
@@ -80,6 +78,19 @@ function updatePipes() {
     pipes.forEach((pipe, index) => {
         if (pipe.x + pipe.width < 0) {
             pipes.splice(index, 1);
+        }
+    });
+
+
+    pipes.forEach(pipe => {
+        if (!pipe.scored && pipe.x + pipe.width < bird.x) {
+            pipe.scored = true;
+            score += 0.5;
+
+    
+            if (score % 40 === 0) {
+                pipeSpeed += 0.5; 
+            }
         }
     });
 }
@@ -102,6 +113,12 @@ function checkCollision() {
 
 let gameOver = false;
 
+function drawScore() {
+    ctx.fillStyle = "black";
+    ctx.font = "24px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+}
+
 function gameLoop() {
     if (gameOver) return;
 
@@ -110,6 +127,7 @@ function gameLoop() {
     bird.draw();
     updatePipes();
     drawPipes();
+    drawScore(); 
     
     if (checkCollision()) {
         gameOver = true;
@@ -126,9 +144,10 @@ function showGameOverScreen() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "white";
-    ctx.font = "24px Arial"; // Giảm font size để hiển thị tốt trên mobile
+    ctx.font = "24px Arial";
     ctx.fillText("Game Over!", canvas.width / 2 - 60, canvas.height / 2 - 20);
     ctx.fillText("Nhấn SPACE hoặc CHẠM để chơi lại", canvas.width / 2 - 140, canvas.height / 2 + 20);
+    ctx.fillText("Điểm số: " + score, canvas.width / 2 - 40, canvas.height / 2 + 60);
 }
 
 function restartGame() {
@@ -136,9 +155,11 @@ function restartGame() {
     bird.velocity = 0;
     pipes.length = 0;
     frame = 0;
+    score = 0;
+    pipeSpeed = 1.5; 
     gameOver = false;
     gameLoop();
 }
 
-// Bắt đầu game
+
 gameLoop();
